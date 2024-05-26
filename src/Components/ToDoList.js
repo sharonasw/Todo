@@ -1,20 +1,50 @@
 import React,{useState,useEffect} from 'react'
 import HttpError from '../HttpErrors.js';
 import { ToDoItem } from './ToDoItem.js';
+import { updateTask } from '../Services/TodoService.js';
 
-function ToDoList()
+export default function ToDoList()
 {
     const [tasks, setTasks] = useState([]);
     const [newTask,setNewTask] = useState('');
-    const [error, setError] = useState(null); // Added state for error
+    const [currentCategory,setCurrentCategory] = useState('pets');
+    //const [error, setError] = useState(null); // Added state for error
     
-    const handleToggleCompleted = (taskId)=>
+    const handleCurrentCategory = (e)=>
+      {
+        setCurrentCategory(e.target.value);
+      }
+
+    const handleToggleCompleted = async (taskId,isToggled)=>
     {
-        const toggledTask = tasks.find((task)=>task.id===taskId);
-        toggledTask.done = true;
-        updateTask(toggledTask);
-        setTasks(tasks);        
+        const updatedTask = await updateTask(taskId,{done:isToggled});
+        if(updatedTask)
+          {
+            // const toggledTask = tasks.find((task)=>task.id===taskId);
+            // toggledTask.done = !toggledTask.done;
+            setTasks(tasks.map(task =>
+              task.id === taskId ? { ...task, done: updatedTask.done } : task
+            ));
+      
+          }
     };
+    // async function updateTask(taskId,done)
+    // {
+    //   try {
+    //     const updatedTask =  await upda
+    //       method:'PUT',body: { done:done },});        
+    //     return updatedTask;
+    //   } 
+    //     catch (error) {
+    //       if (error instanceof HttpError) {
+    //         console.error('HTTP Error:', error.message);
+    //         // Handle HTTP errors (e.g., display an error message to the user)
+    //       } else {
+    //         console.error('Network Error:', error.message);
+    //         // Handle network errors or other errors
+    //       }
+    //     }
+    // }
     const handleTaskInput = (event)=>
       {
         setNewTask(event.target.value);
@@ -26,7 +56,7 @@ function ToDoList()
           const response = await fetch('http://localhost:3001/api/tasks', {
             method: 'POST', // Set method to POST
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ taskDescription: newTask }), // Send task description in body
+            body: JSON.stringify({ category:currentCategory, description: newTask }), // Send task description in body
           });
     
           if (!response.ok) {
@@ -46,31 +76,7 @@ function ToDoList()
           }
         }
       };
-    function updateTask(task)
-    {
-      try {
-        const response = await fetch('http://localhost:3001/api/tasks', {
-          method: 'PUT', // Set method to POST
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ taskId:task.id,done:task.done }), // Send task description in body
-        });
-  
-        if (!response.ok) {
-          throw new HttpError(response);
-        }
-  
-        const data = await response.json();
-        setTasks([...tasks, data]); // Update tasks with the response (potentially containing the new task)
-        setNewTask(''); // Clear the input field
-      } catch (error) {
-        if (error instanceof HttpError) {
-          console.error('HTTP Error:', error.message);
-          // Handle HTTP errors (e.g., display an error message to the user)
-        } else {
-          console.error('Network Error:', error.message);
-          // Handle network errors or other errors
-        }
-    }
+    
     
     useEffect(()=>
     {
@@ -106,12 +112,36 @@ function ToDoList()
      fetchTasks();
   }, []); // Empty dependency array: fetch tasks only on initial render
 
+  // const filteredTasks = useMemo(() => {
+  //   let filtered = tasks;
+  //   if (filterCategory) {
+  //     filtered = filtered.filter(task => task.category === filterCategory);
+  //   }
+  //   if (filterDone !== '') {
+  //     filtered = filtered.filter(task => task.done === (filterDone === 'true'));
+  //   }
+  //   return filtered;
+  // }, [tasks, filterCategory, filterDone]);
+
+
     return  (
       <div>
         <h2>
           Todo List
-        </h2>
+        </h2>        
         <input type="text" value={newTask} onChange={handleTaskInput}/>
+        <select name="categories" id="cat-select" onChange={handleCurrentCategory}>          
+          <option value="pets">Pets</option>
+          <option value="food">Food</option>
+        </select>
+        <div>
+        <label>Done:</label>
+        {/* <select value={filterDone} onChange={(e) => setFilterDone(e.target.value)}>
+          <option value="">All</option>
+          <option value="true">Completed</option>
+          <option value="false">Not Completed</option>
+        </select> */}
+       </div>
         <button onClick={handleAddTask}>Add Task</button>
         {tasks.length === 0 ? (
   <p>No tasks yet.</p>
@@ -128,4 +158,4 @@ function ToDoList()
     );
 }
 
-export default ToDoList
+

@@ -1,0 +1,10 @@
+.todo-item {
+    margin-bottom: 10px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+  
+  .todo-item.completed {
+    text-decoration: line-through;
+  }
