@@ -9,3 +9,13 @@ export const updateTask = async (taskId,taskData)=>
             }
         );
     };
+
+export const addTask = async (taskData)=>
+    {
+        return await apiRequest('tasks',
+            {
+                method:'POST',
+                body:taskData,
+            }
+        );
+    }

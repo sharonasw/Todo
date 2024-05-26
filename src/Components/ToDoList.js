@@ -2,18 +2,29 @@ import React,{useState,useEffect} from 'react'
 import HttpError from '../HttpErrors.js';
 import { ToDoItem } from './ToDoItem.js';
 import { updateTask } from '../Services/TodoService.js';
+import Modal from './NewTodo.js';
 
 export default function ToDoList()
-{
+{ 
     const [tasks, setTasks] = useState([]);
     const [newTask,setNewTask] = useState('');
     const [currentCategory,setCurrentCategory] = useState('pets');
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const toggleModal = () => {
+    setIsModalOpen(!isModalOpen);
+  };
     //const [error, setError] = useState(null); // Added state for error
     
     const handleCurrentCategory = (e)=>
       {
         setCurrentCategory(e.target.value);
       }
+
+      const handleTaskCreated = (newTask) => {
+        // Add the new task to the task list
+        setTasks([...tasks, newTask]);
+      };
 
     const handleToggleCompleted = async (taskId,isToggled)=>
     {
@@ -129,23 +140,12 @@ export default function ToDoList()
         <h2>
           Todo List
         </h2>        
-        <input type="text" value={newTask} onChange={handleTaskInput}/>
-        <select name="categories" id="cat-select" onChange={handleCurrentCategory}>          
-          <option value="pets">Pets</option>
-          <option value="food">Food</option>
-        </select>
-        <div>
-        <label>Done:</label>
-        {/* <select value={filterDone} onChange={(e) => setFilterDone(e.target.value)}>
-          <option value="">All</option>
-          <option value="true">Completed</option>
-          <option value="false">Not Completed</option>
-        </select> */}
-       </div>
-        <button onClick={handleAddTask}>Add Task</button>
+        <button onClick={toggleModal}>Create new task!</button>
+        <Modal isOpen={isModalOpen} onClose={toggleModal} onTaskCreated={handleTaskCreated} /><br/>
+        
         {tasks.length === 0 ? (
-  <p>No tasks yet.</p>
-    ) : (
+        <p>No tasks yet.</p>
+          ) : (
           <ul>
             {tasks.map((task) => (
               <ToDoItem key={task.id}
